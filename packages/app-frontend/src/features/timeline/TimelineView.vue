@@ -1,13 +1,11 @@
 <script>
-import { Application, Container, Graphics, Rectangle, Loader, Sprite } from 'pixi.js'
+import { Application, Container, Graphics, Rectangle } from 'pixi.js'
 import { ref, onMounted, onUnmounted, watch, watchEffect } from '@vue/composition-api'
 import { useLayers, useTime, useSelectedEvent, onTimelineReset, onEventAdd } from '.'
 import Vue from 'vue'
 import { useApps } from '../apps'
 import { onKeyUp } from '@front/util/keyboard'
 import { useDarkMode } from '@front/util/theme'
-import errorIcon from '../../assets/icons/error.png'
-import warningIcon from '../../assets/icons/warning.png'
 
 export default {
   setup () {
@@ -48,12 +46,6 @@ export default {
       })
       updateBackground()
       wrapper.value.appendChild(app.view)
-
-      Loader.shared.add(errorIcon)
-        .add(warningIcon)
-        .load(() => {
-          updateBackground()
-        })
     })
 
     onUnmounted(() => {
@@ -127,19 +119,7 @@ export default {
     }
 
     function addEvent (event, container) {
-      /** @type {Graphics} */
-      // let g
-      // if (event.logType === 'error') {
-      //   g = new Sprite(Loader.shared.resources[errorIcon].texture)
-      //   g.anchor.set(0.5)
-      //   g.tint = 0xE53E3E
-      // } else if (event.logType === 'warning') {
-      //   g = new Sprite(Loader.shared.resources[warningIcon].texture)
-      //   g.anchor.set(0.5)
-      //   g.tint = 0xECC94B
-      // } else {
       const g = new Graphics()
-      // }
       updateEventPosition(event, g)
       g.y = 16
       event.g = g
@@ -234,14 +214,10 @@ export default {
         let color = event.layer.color
         for (const subEvent of event.stackedEvents) {
           if (subEvent.logType === 'error') {
-            event = subEvent
             color = 0xE53E3E
             break
           } else if (subEvent.logType === 'warning') {
-            event = subEvent
             color = 0xECC94B
-          } else {
-            event = event || subEvent
           }
         }
 
