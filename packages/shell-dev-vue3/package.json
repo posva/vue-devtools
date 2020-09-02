@@ -5,14 +5,15 @@
     "dev": "webpack-dev-server --inline --hot --no-info"
   },
   "dependencies": {
-    "@vue/devtools-api": "^6.0.0-beta.1",
     "@vue-devtools/shell-host": "^0.0.0",
+    "@vue/devtools-api": "^6.0.0-beta.1",
     "core-js": "^3.6.4",
-    "vue": "^3.0.0-rc.9"
+    "vue": "^3.0.0-rc.9",
+    "vue-router": "^4.0.0-beta.9"
   },
   "devDependencies": {
-    "@vue/compiler-sfc": "^3.0.0-beta.15",
     "@vue-devtools/build-tools": "^0.0.0",
+    "@vue/compiler-sfc": "^3.0.0-beta.15",
     "launch-editor-middleware": "^2.2.1",
     "mini-css-extract-plugin": "^0.9.0",
     "vue-loader": "^16.0.0-beta.4",

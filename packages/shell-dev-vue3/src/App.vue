@@ -25,4 +25,12 @@ export default {
   <NativeTypes />
   <EventEmit />
   <EventNesting />
+  <router-view />
 </template>
+
+<style>
+/** Prevent accidental swipe left in browser history while viewing the timeline and scrolling horizontally */
+html, body {
+  overscroll-behavior-x: none;
+}
+</style>
