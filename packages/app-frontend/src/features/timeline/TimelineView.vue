@@ -1,14 +1,29 @@
 <script>
-import { Application, Container, Graphics, Rectangle } from 'pixi.js'
-import { ref, onMounted, onUnmounted, watch, watchEffect } from '@vue/composition-api'
-import { useLayers, useTime, useSelectedEvent, onTimelineReset, onEventAdd } from '.'
+import * as PIXI from 'pixi.js'
+import { install as installUnsafeEval } from '@pixi/unsafe-eval'
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  watch,
+  watchEffect
+} from '@vue/composition-api'
+import {
+  useLayers,
+  useTime,
+  useSelectedEvent,
+  onTimelineReset,
+  onEventAdd
+} from '.'
 import Vue from 'vue'
 import { useApps } from '../apps'
 import { onKeyUp } from '@front/util/keyboard'
 import { useDarkMode } from '@front/util/theme'
 
+installUnsafeEval(PIXI)
+
 export default {
-  setup () {
+  setup() {
     const wrapper = ref(null)
 
     const { currentAppId } = useApps()
@@ -19,11 +34,11 @@ export default {
 
     const resetCbs = []
 
-    function onReset (cb) {
+    function onReset(cb) {
       resetCbs.push(cb)
     }
 
-    function reset () {
+    function reset() {
       for (const cb of resetCbs) {
         cb()
       }
@@ -39,7 +54,7 @@ export default {
     let app
 
     onMounted(() => {
-      app = new Application({
+      app = new PIXI.Application({
         resizeTo: wrapper.value,
         antialias: true,
         autoDensity: true
@@ -52,9 +67,9 @@ export default {
       app.destroy()
     })
 
-    function updateBackground () {
+    function updateBackground() {
       if (darkMode.value) {
-        app && (app.renderer.backgroundColor = 0x0A1015)
+        app && (app.renderer.backgroundColor = 0x0a1015)
       } else {
         app && (app.renderer.backgroundColor = 0xffffff)
       }
@@ -71,10 +86,10 @@ export default {
     let layerContainers = []
     let layersMap = {}
 
-    function initLayers () {
+    function initLayers() {
       let y = 0
       for (const layer of layers.value) {
-        const container = new Container()
+        const container = new PIXI.Container()
         container.y = y
         y += 32
         app.stage.addChild(container)
@@ -92,7 +107,7 @@ export default {
       initLayers()
     })
 
-    function resetLayers () {
+    function resetLayers() {
       for (const container of layerContainers) {
         container.destroy()
       }
@@ -114,12 +129,15 @@ export default {
 
     let events = []
 
-    function updateEventPosition (event, g) {
-      g.x = (event.time - minTime.value) / (endTime.value - startTime.value) * app.view.width
+    function updateEventPosition(event, g) {
+      g.x =
+        ((event.time - minTime.value) / (endTime.value - startTime.value)) *
+        app.view.width
     }
 
-    function addEvent (event, container) {
-      const g = new Graphics()
+    function addEvent(event, container) {
+      // Graphics
+      const g = new PIXI.Graphics()
       updateEventPosition(event, g)
       g.y = 16
       event.g = g
@@ -137,7 +155,7 @@ export default {
       return event
     }
 
-    function initEvents () {
+    function initEvents() {
       for (const k in layersMap) {
         const { layer, container } = layersMap[k]
         for (const event of layer.displayedEvents) {
@@ -150,7 +168,7 @@ export default {
       initEvents()
     })
 
-    function resetEvents () {
+    function resetEvents() {
       for (const e of events) {
         e.g.destroy()
         e.g = null
@@ -169,7 +187,7 @@ export default {
 
     let eventsUpdateQueued = false
 
-    function queueEventsUpdate () {
+    function queueEventsUpdate() {
       if (eventsUpdateQueued) return
       eventsUpdateQueued = true
       Vue.nextTick(() => {
@@ -178,7 +196,7 @@ export default {
       })
     }
 
-    function updateEvents () {
+    function updateEvents() {
       for (const event of events) {
         updateEventPosition(event, event.g)
       }
@@ -192,13 +210,15 @@ export default {
 
     onMounted(() => {
       app.stage.interactive = true
-      app.stage.hitArea = new Rectangle(0, 0, 100000, 100000)
+      app.stage.hitArea = new PIXI.Rectangle(0, 0, 100000, 100000)
       app.stage.addListener('click', event => {
         let choice
         let distance = Number.POSITIVE_INFINITY
         for (const e of events) {
           const globalPosition = e.g.getGlobalPosition()
-          const d = Math.abs(globalPosition.x - event.data.global.x) + Math.abs(globalPosition.y - event.data.global.y)
+          const d =
+            Math.abs(globalPosition.x - event.data.global.x) +
+            Math.abs(globalPosition.y - event.data.global.y)
 
           if (!choice || d < distance) {
             choice = e
@@ -209,15 +229,15 @@ export default {
       })
     })
 
-    function drawEvent (size, event) {
+    function drawEvent(size, event) {
       if (event) {
         let color = event.layer.color
         for (const subEvent of event.stackedEvents) {
           if (subEvent.logType === 'error') {
-            color = 0xE53E3E
+            color = 0xe53e3e
             break
           } else if (subEvent.logType === 'warning') {
-            color = 0xECC94B
+            color = 0xecc94b
           }
         }
 
@@ -270,7 +290,7 @@ export default {
 
     let cameraUpdateQueued = false
 
-    function queueCameraUpdate () {
+    function queueCameraUpdate() {
       if (cameraUpdateQueued) return
       cameraUpdateQueued = true
       Vue.nextTick(() => {
@@ -279,8 +299,11 @@ export default {
       })
     }
 
-    function updateCamera () {
-      app.stage.x = -(startTime.value - minTime.value) / (endTime.value - startTime.value) * app.view.width
+    function updateCamera() {
+      app.stage.x =
+        (-(startTime.value - minTime.value) /
+          (endTime.value - startTime.value)) *
+        app.view.width
     }
 
     watch(startTime, () => queueCameraUpdate())
@@ -289,7 +312,7 @@ export default {
     /**
      * @param {MouseWheelEvent} event
      */
-    function onMouseWheel (event) {
+    function onMouseWheel(event) {
       const size = endTime.value - startTime.value
       const viewWidth = wrapper.value.offsetWidth
 
@@ -300,7 +323,7 @@ export default {
         const centerRatio = event.offsetX / viewWidth
         const center = size * centerRatio + startTime.value
 
-        let newSize = size + event.deltaY / viewWidth * size * 2
+        let newSize = size + (event.deltaY / viewWidth) * size * 2
         if (newSize < 100) {
           newSize = 100
         }
@@ -325,8 +348,8 @@ export default {
 
         if (deltaX !== 0) {
           // Horizontal scroll
-          const delta = deltaX / viewWidth * size
-          let start = startTime.value += delta
+          const delta = (deltaX / viewWidth) * size
+          let start = (startTime.value += delta)
           if (start < minTime.value) {
             start = minTime.value
           } else if (start + size >= maxTime.value) {
@@ -340,7 +363,7 @@ export default {
 
     // Resize
 
-    function onResize () {
+    function onResize() {
       app.queueResize()
       queueEventsUpdate()
     }

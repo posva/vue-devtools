@@ -60,6 +60,11 @@ export default {
         treeFilterPlaceholder: 'Search for test...'
       })
 
+      api.addInspector({
+        id: 'test-inspector2',
+        label: 'Test inspector 2'
+      })
+
       api.on.getInspectorTree(payload => {
         if (payload.app === app && payload.inspectorId === 'test-inspector') {
           payload.rootNodes = [
@@ -127,7 +132,7 @@ export default {
     // Outside of setupDevtoolsPlugin
 
     window.addEventListener('mouseup', event => {
-      devtoolsApi.addTimelineEvent({
+      devtoolsApi && devtoolsApi.addTimelineEvent({
         layerId: 'test-layer',
         event: {
           time: Date.now(),
